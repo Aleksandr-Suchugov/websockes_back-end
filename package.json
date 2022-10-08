@@ -23,10 +23,15 @@
   },
   "homepage": "https://github.com/Aleksandr-Suchugov/websockes_back-end#readme",
   "dependencies": {
+    "@koa/cors": "^3.4.1",
     "forever": "^4.0.3",
+    "http-event-stream": "^0.2.0",
     "koa": "^2.13.4",
     "koa-body": "^5.0.0",
+    "koa-combine-routers": "^4.0.2",
+    "koa-router": "^12.0.0",
     "koa-static": "^5.0.0",
+    "koa2-cors": "^2.0.6",
     "uuid": "^9.0.0",
     "ws": "^8.9.0"
   }
