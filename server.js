@@ -5,7 +5,6 @@ const { v4: uuidv4 } = require('uuid');
 const Router = require("koa-router");
 const cors = require('@koa/cors');
 const WS = require('ws');
-const { cli } = require('forever');
 
 const app = new Koa();
 
@@ -20,10 +19,10 @@ app.use(koaBody({
 }));
 
 app.use(cors({
-  origin: '*',
-  credentials: true,
-  'Access-Control-Allow-Origin': true,
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: '*',
+    credentials: true,
+    'Access-Control-Allow-Origin': true,
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
 const router = new Router();
@@ -33,11 +32,9 @@ app.use(router.routes()).use(router.allowedMethods());
 const port = process.env.PORT || 7070;
 const server = http.createServer(app.callback())
 server.listen( port , () => console.log('server started'));
-const wsServer = new WS.Server({
-  server
-});
+const wsServer = new WS.Server({server});
 
-wsServer.on('connection', (ws) => {
+wsServer.on('connection', (ws, req) => {
   const errCallback = (err) => {
     if (err) {
       console.log(err);
@@ -45,7 +42,6 @@ wsServer.on('connection', (ws) => {
   }
 
   ws.on('message', msg => {
-    console.log('команда: ', JSON.parse(msg).type);
     const request = JSON.parse(msg);
     if (request.type === 'addUser') {
       if (users.find(user => user.name === request.name)) {
@@ -56,32 +52,30 @@ wsServer.on('connection', (ws) => {
         users.push({
           name: request.name,
           id: uuidv4()
-        });
-        // const eventData = JSON.stringify({ users: [messages] });
+        })
         Array.from(wsServer.clients)
-        .filter(client => client.readyState === WS.OPEN)
-        .forEach(client => {
-          // client.send(eventData);
-          client.send(JSON.stringify(users));
-          client.send(JSON.stringify(messages));
-        });
+          .filter(o => o.readyState === WS.OPEN)
+          .forEach(o => {
+            o.send(JSON.stringify(users));
+            o.send(JSON.stringify(messages));
+          });
       }
       return;
     }
-  
+
     if (request.type === 'sendMessage') {
       messages.push({
         name: request.name,
         text: request.text
       });
       Array.from(wsServer.clients)
-        .filter(client => client.readyState === WS.OPEN)
-        .forEach(client => client.send(JSON.stringify(messages)));
+        .filter(o => o.readyState === WS.OPEN)
+        .forEach(o => o.send(JSON.stringify(messages)));
     }
   });
-  
+
   ws.on('close', () => {
     clients.delete(ws);
     console.log(clients.size);
-  });
+  })
 });
